@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:connectors",
+  "title": "Connector settings",
+  "description": "connectors.yaml (Requirement 32.3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "connectors": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "kiro",
+          "claude",
+          "cursor",
+          "codex",
+          "gemini",
+          "opencode",
+          "spec-kit",
+          "windsurf",
+          "cline",
+          "copilot",
+          "agents-skills",
+          "agents-md"
+        ]
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "mode": {
+            "enum": [
+              "off",
+              "read",
+              "import",
+              "sync"
+            ],
+            "description": "off, read in place, import once, or two-way sync."
+          }
+        }
+      }
+    },
+    "priority": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "kiro",
+          "claude",
+          "cursor",
+          "codex",
+          "gemini",
+          "opencode",
+          "spec-kit",
+          "windsurf",
+          "cline",
+          "copilot",
+          "agents-skills",
+          "agents-md"
+        ]
+      },
+      "uniqueItems": true
+    }
+  }
+}

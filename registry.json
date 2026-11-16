@@ -1,0 +1,6 @@
+{
+  "format": 1,
+  "registry": "marckengland/mermaide-registry",
+  "baseUrl": "https://mermaide.marckengland.com/registry/v1/",
+  "marketplaceKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAnX6Yjzqw3NNSEbqoW8rDNh+6vJ1luVREzs7KLXrDmqI=\n-----END PUBLIC KEY-----\n"
+}

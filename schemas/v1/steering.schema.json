@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:steering",
+  "title": "Steering front-matter",
+  "description": "YAML front-matter of .mermaide/steering/*.md (Requirement 4.2). A file without front-matter is treated as inclusion: always.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/frontMatterVersion"
+    },
+    "inclusion": {
+      "enum": [
+        "always",
+        "fileMatch",
+        "manual",
+        "auto"
+      ],
+      "default": "always"
+    },
+    "fileMatchPattern": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/globs"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "inclusion": {
+            "const": "fileMatch"
+          }
+        },
+        "required": [
+          "inclusion"
+        ]
+      },
+      "then": {
+        "required": [
+          "fileMatchPattern"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "inclusion": {
+            "const": "auto"
+          }
+        },
+        "required": [
+          "inclusion"
+        ]
+      },
+      "then": {
+        "required": [
+          "name",
+          "description"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

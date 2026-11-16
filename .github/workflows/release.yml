@@ -1,0 +1,70 @@
+name: Publish signed registry
+# Enable automatic runs only with the separately reviewed registry launch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['submissions/**', 'publishers/**', 'trust/**', 'registry.json', 'registry-tool.mjs', 'schemas/**', '.github/workflows/release.yml']
+  schedule:
+    - cron: '23 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: registry-release
+  cancel-in-progress: false
+jobs:
+  scan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+      - name: Read previous signed state without a signing key
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node registry-tool.mjs previous --source "$GITHUB_WORKSPACE" --output "$RUNNER_TEMP/previous" --receipt "$RUNNER_TEMP/scan-state.json"
+      - name: Admit new versions while allowing revoked immutable versions to remain revoked
+        run: |
+          if test -d "$RUNNER_TEMP/previous"; then
+            node registry-tool.mjs scan --source "$GITHUB_WORKSPACE" --previous "$RUNNER_TEMP/previous"
+          else
+            node registry-tool.mjs scan --source "$GITHUB_WORKSPACE"
+          fi
+  release:
+    needs: scan
+    if: github.ref == 'refs/heads/main'
+    environment: registry-release
+    permissions:
+      contents: write
+      pages: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+      - name: Verify previous signed state and remember its exact branch head
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node registry-tool.mjs previous --source "$GITHUB_WORKSPACE" --output "$RUNNER_TEMP/previous" --receipt "$RUNNER_TEMP/publication-state.json"
+      - name: Rescan and sign with the protected environment key
+        env:
+          MARKETPLACE_SIGNING_KEY: ${{ secrets.MARKETPLACE_SIGNING_KEY }}
+        run: |
+          if test -d "$RUNNER_TEMP/previous"; then
+            node registry-tool.mjs release --source "$GITHUB_WORKSPACE" --output "$RUNNER_TEMP/site" --key-env MARKETPLACE_SIGNING_KEY --previous "$RUNNER_TEMP/previous"
+          else
+            node registry-tool.mjs release --source "$GITHUB_WORKSPACE" --output "$RUNNER_TEMP/site" --key-env MARKETPLACE_SIGNING_KEY
+          fi
+      - name: Publish the immutable snapshot and request the configured HTTPS Pages build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node registry-tool.mjs publish --source "$GITHUB_WORKSPACE" --site "$RUNNER_TEMP/site" --receipt "$RUNNER_TEMP/publication-state.json"

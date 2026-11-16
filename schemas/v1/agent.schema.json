@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:agent",
+  "title": "Custom agent front-matter",
+  "description": "YAML front-matter of .mermaide/agents/*.md (Requirement 9.1). The Markdown body is the system prompt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description"
+  ],
+  "properties": {
+    "version": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/frontMatterVersion"
+    },
+    "name": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/kebabName"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "tools": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(read|write|shell|web|mcp:[A-Za-z0-9._-]+)$"
+      }
+    },
+    "mcpServers": {
+      "$ref": "urn:mermaide:schema:v1:mcp#/$defs/servers"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:mermaide:schema:v1:defs#/$defs/permissionRule"
+      }
+    },
+    "role": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/roleName"
+    },
+    "model": {
+      "oneOf": [
+        {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/modelId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

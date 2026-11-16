@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:command",
+  "title": "Custom slash command front-matter",
+  "description": "YAML front-matter of .mermaide/commands/*.md (Requirement 37.2). The body is a prompt template in which $ARGUMENTS is replaced.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "description"
+  ],
+  "properties": {
+    "version": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/frontMatterVersion"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/kebabName"
+    },
+    "role": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/roleName"
+    },
+    "model": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/modelId"
+    },
+    "argument-hint": {
+      "type": "string"
+    }
+  }
+}

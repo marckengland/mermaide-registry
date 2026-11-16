@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:lock",
+  "title": "Install lockfile",
+  "description": "lock.json: content hashes of installed skills, pearls, and packages, and two-way-sync state (Requirements 26.2, 32.3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "items"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "source",
+          "files"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "skill",
+              "pearl",
+              "package",
+              "hook",
+              "agent",
+              "command",
+              "steering",
+              "mcp",
+              "sync"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string"
+          },
+          "files": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "urn:mermaide:schema:v1:defs#/$defs/sha256"
+            }
+          },
+          "scannedAt": {
+            "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+          },
+          "findingsHash": {
+            "$ref": "urn:mermaide:schema:v1:defs#/$defs/sha256"
+          }
+        }
+      }
+    }
+  }
+}

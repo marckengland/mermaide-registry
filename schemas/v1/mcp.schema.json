@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:mcp",
+  "title": "MCP server config",
+  "description": "settings/mcp.json (Requirement 6). Kiro's schema, with an optional version so that .kiro/settings/mcp.json files load unchanged.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mcpServers"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "mcpServers": {
+      "$ref": "#/$defs/servers"
+    }
+  },
+  "$defs": {
+    "server": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "autoApprove": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Tool names that run without asking. Deny rules and hard floors still apply (Requirement 6.7)."
+        },
+        "sandbox": {
+          "type": "boolean",
+          "description": "Run this stdio server inside the sandbox (Requirement 10.4). It gets no network unless sandboxAllowHosts lists hosts."
+        },
+        "sandboxAllowHosts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(\\*\\.)?(\\[[0-9A-Fa-f:.]+\\]|[A-Za-z0-9_.-]+)(:[0-9]{1,5})?$"
+          },
+          "uniqueItems": true,
+          "description": "Hosts this sandboxed server may reach through the egress proxy: exact names, *.suffix for subdomains, and an optional :port (without one, 80 and 443)."
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "command"
+          ],
+          "not": {
+            "required": [
+              "url"
+            ]
+          }
+        },
+        {
+          "required": [
+            "url"
+          ],
+          "not": {
+            "required": [
+              "command"
+            ]
+          }
+        }
+      ]
+    },
+    "servers": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9._-]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/server"
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:project",
+  "title": "Project commands",
+  "description": ".mermaide/project.json, detected on first use and confirmed by the user (Requirement 3.5).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "build": {
+      "type": "string",
+      "minLength": 1
+    },
+    "test": {
+      "type": "string",
+      "minLength": 1
+    },
+    "typecheck": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "format": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Formats the project's files in place (for example cargo fmt, ruff format ., or npm run format)."
+    },
+    "propertyTests": {
+      "enum": [
+        "fast-check",
+        "hypothesis",
+        "proptest",
+        "jqwik"
+      ],
+      "description": "The property-based testing library the project uses, for property-test tasks (Requirement 3.6)."
+    },
+    "testFilter": {
+      "type": "string",
+      "pattern": "\\{pattern\\}",
+      "description": "Template for running a subset of tests. {test} is the test command and {pattern} the filter."
+    },
+    "dev": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command"
+      ],
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "ready": {
+          "type": "string",
+          "description": "Output text that means the dev server is ready."
+        }
+      }
+    },
+    "ports": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 65535
+      }
+    }
+  }
+}

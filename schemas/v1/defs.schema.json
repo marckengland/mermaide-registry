@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:defs",
+  "title": "Shared definitions",
+  "description": "Types shared by the Mermaide v1 config schemas.",
+  "$defs": {
+    "kebabName": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "maxLength": 64,
+      "description": "Lowercase letters, digits, and single hyphens."
+    },
+    "glob": {
+      "type": "string",
+      "minLength": 1
+    },
+    "globs": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/glob"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/glob"
+          },
+          "minItems": 1
+        }
+      ]
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "semverRange": {
+      "type": "string",
+      "minLength": 1
+    },
+    "modelId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+      "description": "provider/model, for example anthropic/claude-sonnet-5."
+    },
+    "roleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "ask",
+        "deny"
+      ]
+    },
+    "permissionRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "decision"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "pattern"
+          ]
+        },
+        {
+          "required": [
+            "prefix"
+          ]
+        }
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "read",
+            "write",
+            "shell",
+            "network",
+            "mcp",
+            "external_directory"
+          ]
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Wildcard pattern (*, ?, and **/ for any folders). When several rules match, the last one wins."
+        },
+        "prefix": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Shell only: the command's leading words, each a word or a list of alternatives (Codex prefix rules). Use either pattern or prefix.",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            ]
+          }
+        },
+        "decision": {
+          "$ref": "#/$defs/decision"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "match": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Targets this rule must match. Checked when the file loads; a failing example fails the load."
+        },
+        "notMatch": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Targets this rule must not match. Checked when the file loads."
+        }
+      },
+      "dependentSchemas": {
+        "prefix": {
+          "properties": {
+            "kind": {
+              "const": "shell"
+            }
+          }
+        }
+      }
+    },
+    "frontMatterVersion": {
+      "const": 1,
+      "description": "Schema version. Optional in Markdown front-matter, where it defaults to 1, so that files shared with other tools stay compatible."
+    }
+  }
+}

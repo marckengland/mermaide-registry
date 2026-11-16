@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:permissions",
+  "title": "Permission rules",
+  "description": "permissions.yaml (Requirement 10). Hard floors are built in and can't be configured here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "read": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/decision"
+        },
+        "write": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/decision"
+        },
+        "shell": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/decision"
+        },
+        "network": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/decision"
+        },
+        "mcp": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/decision"
+        },
+        "external_directory": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/decision"
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:mermaide:schema:v1:defs#/$defs/permissionRule"
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "read",
+              "write",
+              "shell",
+              "network",
+              "mcp"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "maxDenials": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        }
+      }
+    }
+  }
+}

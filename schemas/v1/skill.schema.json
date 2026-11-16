@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:skill",
+  "title": "Skill front-matter",
+  "description": "YAML front-matter of SKILL.md, following the open Agent Skills format (Requirement 7). Unknown keys are allowed so that skills from other collections load unmodified. disable-model-invocation and paths map to Mermaide's inclusion modes (Requirement 32.9).",
+  "type": "object",
+  "required": [
+    "name",
+    "description"
+  ],
+  "properties": {
+    "name": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/kebabName"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "license": {
+      "type": "string"
+    },
+    "allowed-tools": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "disable-model-invocation": {
+      "type": "boolean"
+    },
+    "paths": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/globs"
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

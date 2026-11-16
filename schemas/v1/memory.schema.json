@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:memory",
+  "title": "Reviewed memory front-matter",
+  "description": "Human-editable memory entry metadata (R23). Source metadata never grants approval; Core checks its separate receipt.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^mem_[a-f0-9]{32}$"
+    },
+    "scope": {
+      "enum": [
+        "repo",
+        "global"
+      ]
+    },
+    "repo": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "kind": {
+      "enum": [
+        "fact",
+        "preference",
+        "fix",
+        "lesson"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      }
+    },
+    "strength": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "version": {
+      "const": 1
+    },
+    "lesson": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "enum": [
+            "correction",
+            "fixed-failure"
+          ]
+        },
+        "applicability": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "verificationMethod": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "supersedes": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "pattern": "^mem_[a-f0-9]{32}$"
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "sessionId": {
+              "type": "string",
+              "pattern": "^ses_[0-9a-z]{26}$"
+            },
+            "turnId": {
+              "type": "string",
+              "pattern": "^trn_[0-9a-z]{26}$"
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "outcomeRevision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failureTurnId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^trn_[0-9a-z]{26}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "sessionId",
+            "turnId",
+            "digest",
+            "outcomeRevision",
+            "failureTurnId"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "trigger",
+        "applicability",
+        "action",
+        "verificationMethod",
+        "supersedes",
+        "source"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "id",
+    "scope",
+    "repo",
+    "kind",
+    "evidence",
+    "strength",
+    "updated"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scope": {
+            "const": "global"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "repo": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "repo": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "lesson"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "lesson"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "lesson"
+          ]
+        }
+      }
+    }
+  ]
+}

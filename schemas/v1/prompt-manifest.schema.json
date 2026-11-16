@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:prompt-manifest",
+  "title": "Prompt library manifest",
+  "description": "prompts/manifest.yaml in the Mermaide repository (Requirement 18): every prompt module with its version, owning agent, family variants, source, and license; the model families variants are chosen for; and the modules each agent's system prompt is built from, in order.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "families", "modules", "agents"],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "families": {
+      "description": "Model families, checked in order: the first one that matches a model picks its variants (R18.2). A model no family matches gets the base modules.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/family"
+      }
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/module"
+      }
+    },
+    "agents": {
+      "description": "Agent name to the modules its system prompt is built from, in order.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/agentName"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/moduleId"
+        }
+      }
+    },
+    "templates": {
+      "description": "Modules that are user-prompt templates rather than system-prompt parts: the editor's quick actions and \"Ask Mermaide to fix\" (R35.2, R35.3). A template belongs to * and may use {{placeholders}} the IDE fills in.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/moduleId"
+      }
+    }
+  },
+  "$defs": {
+    "moduleId": {
+      "description": "The module's path under prompts/ without .md, e.g. workflows/spec-requirements.",
+      "type": "string",
+      "pattern": "^(?!variants/)[a-z0-9-]+(?:/[a-z0-9-]+)*$"
+    },
+    "familyId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "agentName": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/familyId"
+        },
+        "models": {
+          "description": "Case-insensitive regular expressions matched against the model part of the model ID (after provider/), so a family's models are found at any provider (Bedrock, OpenRouter).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "providers": {
+          "description": "Catalog provider IDs (the part before /).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sdks": {
+          "description": "Catalog provider SDKs (catalog/models/*.yaml providers.<id>.sdk).",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "local": {
+          "description": "Matches a model the catalog marks local, or one whose provider runs on this machine.",
+          "type": "boolean"
+        }
+      }
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "agent", "source", "license"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/moduleId"
+        },
+        "version": {
+          "description": "Bumped on every change to the module or one of its variants; the header of each file says the same.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "agent": {
+          "description": "The agent that owns the module, or * for a module shared by several agents.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/agentName"
+            },
+            {
+              "const": "*"
+            }
+          ]
+        },
+        "source": {
+          "description": "Where the text comes from: written for Mermaide, or the upstream it's derived from (R18.4).",
+          "type": "string",
+          "minLength": 1
+        },
+        "license": {
+          "description": "The module's SPDX license. Only licenses that allow reuse (R18.4).",
+          "enum": ["Apache-2.0", "MIT"]
+        },
+        "variants": {
+          "description": "Families with their own copy of the module, at prompts/variants/<family>/<id>.md.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/familyId"
+          }
+        }
+      }
+    }
+  }
+}

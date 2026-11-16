@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:package",
+  "title": "Mermaide package manifest",
+  "description": "mermaide-package.json for packages published to the marketplace (Requirement 45.2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "publisher",
+    "version",
+    "type",
+    "license",
+    "engines",
+    "capabilities"
+  ],
+  "properties": {
+    "manifestVersion": {
+      "const": 1,
+      "default": 1
+    },
+    "name": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/kebabName"
+    },
+    "publisher": {
+      "$ref": "urn:mermaide:schema:v1:defs#/$defs/kebabName"
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 128,
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "type": {
+      "enum": [
+        "pearl",
+        "skill",
+        "agent",
+        "command-pack",
+        "hook-pack",
+        "steering-pack",
+        "prompt-pack",
+        "connector",
+        "model-provider",
+        "plugin",
+        "theme"
+      ]
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPDX expression.",
+      "maxLength": 256,
+      "pattern": "^(?=.*[A-Za-z0-9])[\\x20-\\x7e]+$"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri"
+    },
+    "engines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mermaide"
+      ],
+      "properties": {
+        "mermaide": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/semverRange"
+        },
+        "extensionApi": {
+          "type": "string",
+          "pattern": "^[1-9]\\d*$"
+        }
+      }
+    },
+    "main": {
+      "$ref": "#/$defs/path",
+      "description": "Package-relative JavaScript entry point for executable package kinds."
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "read": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 1024,
+                "pattern": "^\\$\\{(?:workspace|package|data)\\}(?:/(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\x00-\\x1f\\x7f]+)?$"
+              },
+              "maxItems": 100,
+              "uniqueItems": true
+            },
+            "write": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 1024,
+                "pattern": "^\\$\\{(?:workspace|package|data)\\}(?:/(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\x00-\\x1f\\x7f]+)?$"
+              },
+              "maxItems": 100,
+              "uniqueItems": true
+            }
+          }
+        },
+        "network": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "pattern": "^(?:\\*\\.)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?::[1-9][0-9]{0,4})?$"
+          },
+          "uniqueItems": true,
+          "maxItems": 100
+        },
+        "shell": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "pattern": "^[^\\x00-\\x1f\\x7f]+$"
+          },
+          "maxItems": 100,
+          "uniqueItems": true
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$",
+            "maxLength": 2048
+          },
+          "uniqueItems": true,
+          "maxItems": 100
+        }
+      }
+    },
+    "contributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "steering": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/globPath"
+          },
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/globPath"
+          },
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/globPath"
+          },
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/globPath"
+          },
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/globPath"
+          },
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "prompts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/globPath"
+          },
+          "maxItems": 1000,
+          "uniqueItems": true
+        },
+        "mcp": {
+          "$ref": "#/$defs/path"
+        },
+        "connectors": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/globPath"
+          }
+        },
+        "providers": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/globPath"
+          }
+        },
+        "themes": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/globPath"
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "uniqueItems": true,
+      "description": "Explicit package-relative file/glob allowlist used by mermaide pack. LICENSE must be included. No implicit workspace capture.",
+      "items": {
+        "$ref": "#/$defs/globPath"
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "type": {
+        "enum": [
+          "plugin",
+          "connector",
+          "model-provider"
+        ]
+      }
+    },
+    "required": [
+      "type"
+    ]
+  },
+  "then": {
+    "required": [
+      "main"
+    ]
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*[\\\\:\\x00-\\x1f\\x7f])(?!.*//)(?!(?:.*/)?\\.{1,2}(?:/|$)).+$"
+    },
+    "globPath": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/path"
+        },
+        {
+          "pattern": "^[^\\[\\]{}()]*$",
+          "type": "string"
+        }
+      ],
+      "description": "Literal path components, * and ? within components, or ** as a whole component. No brace/class/extglob expansion."
+    }
+  }
+}

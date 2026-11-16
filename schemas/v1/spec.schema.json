@@ -1,0 +1,759 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:spec",
+  "title": "Spec state",
+  "description": ".mermaide/specs/<name>/spec.json (Requirement 3). Task status lives in tasks.md, never here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "workflow",
+    "phase",
+    "approvals"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "workflow": {
+      "description": "requirements-first and design-first are Kiro's two feature workflows (workflowType); quick is Quick Spec's one combined document; bugfix and plan are the lighter workflows (R3.8).",
+      "enum": [
+        "requirements-first",
+        "design-first",
+        "quick",
+        "bugfix",
+        "plan"
+      ]
+    },
+    "phase": {
+      "description": "The document being written or reviewed, then executing and done. stale: an approved document changed since its approval (R3.7).",
+      "enum": [
+        "requirements",
+        "bugfix",
+        "plan",
+        "design",
+        "tasks",
+        "executing",
+        "done",
+        "stale"
+      ]
+    },
+    "approvals": {
+      "description": "Per document: the SHA-256 of the file's bytes when it was approved, or null when it isn't approved (R3.3, R3.7).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requirements": {
+          "$ref": "#/$defs/approval"
+        },
+        "bugfix": {
+          "$ref": "#/$defs/approval"
+        },
+        "plan": {
+          "$ref": "#/$defs/approval"
+        },
+        "design": {
+          "$ref": "#/$defs/approval"
+        },
+        "tasks": {
+          "$ref": "#/$defs/approval"
+        }
+      }
+    },
+    "staleFrom": {
+      "description": "While the phase is stale: the phase it left, which it returns to when the changed document is approved again or changed back (R3.7).",
+      "enum": [
+        "requirements",
+        "bugfix",
+        "plan",
+        "design",
+        "tasks",
+        "executing",
+        "done"
+      ]
+    },
+    "sessions": {
+      "description": "Each document's phase session (the session running its workflow agent), so requested changes reach the session that wrote the draft.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requirements": {
+          "$ref": "#/$defs/sessionId"
+        },
+        "bugfix": {
+          "$ref": "#/$defs/sessionId"
+        },
+        "plan": {
+          "$ref": "#/$defs/sessionId"
+        },
+        "design": {
+          "$ref": "#/$defs/sessionId"
+        },
+        "tasks": {
+          "$ref": "#/$defs/sessionId"
+        }
+      }
+    },
+    "runs": {
+      "description": "Each task's runs, keyed by its id in tasks.md (1, 1.1, 2.4b).",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^\\d+(\\.\\d+)*[a-z]?$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/run"
+        }
+      }
+    },
+    "execution": {
+      "description": "The Plan workflow's last \"Approve and execute\" (R3.8): the build turn that carried the approved plan.md, and the SHA-256 of the text it carried.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "turnId",
+        "sha256",
+        "at",
+        "outcome"
+      ],
+      "properties": {
+        "sessionId": {
+          "$ref": "#/$defs/sessionId"
+        },
+        "turnId": {
+          "$ref": "#/$defs/sessionId"
+        },
+        "sha256": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/sha256"
+        },
+        "at": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+        },
+        "outcome": {
+          "enum": [
+            "running",
+            "completed",
+            "failed",
+            "interrupted"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
+    },
+    "bugfix": {
+      "description": "A Bug Fix spec (R3.8): its reproduction as it last ran on the unfixed code (it reproduces the bug when before failed; bugfix.md is approved only then), and its runs' receipts, the reproduction's before and after results among them.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reproduction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command",
+            "sha256",
+            "files",
+            "before",
+            "at"
+          ],
+          "properties": {
+            "command": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "sha256": {
+              "$ref": "urn:mermaide:schema:v1:defs#/$defs/sha256"
+            },
+            "files": {
+              "description": "The reproduction's files, pinned by SHA-256 when it ran: the files the reproduce turns wrote and the workspace files the command names (bugfix.md and the spec folder aside). The fix counts only while they still match.",
+              "type": "array",
+              "maxItems": 200,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "path",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "description": "Workspace-relative, with forward slashes.",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  },
+                  "sha256": {
+                    "$ref": "urn:mermaide:schema:v1:defs#/$defs/sha256"
+                  }
+                }
+              }
+            },
+            "before": {
+              "$ref": "#/$defs/check"
+            },
+            "at": {
+              "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+            }
+          }
+        },
+        "runs": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/bugfixRun"
+          }
+        }
+      }
+    },
+    "maxAttempts": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "How many attempts a task gets before it fails and raises an attention card (default 3)."
+    },
+    "git": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "branchPerSpec": {
+          "type": "boolean",
+          "default": false
+        },
+        "commitPerTask": {
+          "type": "boolean",
+          "default": false
+        },
+        "baseBranch": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sessionId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "approval": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sha256",
+            "at"
+          ],
+          "properties": {
+            "sha256": {
+              "$ref": "urn:mermaide:schema:v1:defs#/$defs/sha256"
+            },
+            "at": {
+              "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+            }
+          }
+        }
+      ]
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sessionId",
+        "executor",
+        "attempts",
+        "at"
+      ],
+      "properties": {
+        "operationKey": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executor": {
+          "type": "string",
+          "pattern": "^(mermaide|external:[a-z0-9-]+)$"
+        },
+        "model": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/modelId"
+        },
+        "role": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/roleName"
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Attempts made (0 when PreTaskExec blocked the task)."
+        },
+        "costUsd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "verification": {
+          "enum": [
+            "passed",
+            "failed",
+            "skipped"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "stopped"
+          ]
+        },
+        "modelSource": {
+          "enum": [
+            "request",
+            "role",
+            "default",
+            "none"
+          ]
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "attemptResults": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/attempt"
+          }
+        },
+        "changedFiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "hooks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pre",
+            "post"
+          ],
+          "properties": {
+            "pre": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "decision",
+                "reason",
+                "hooks"
+              ],
+              "properties": {
+                "decision": {
+                  "enum": [
+                    "run",
+                    "block"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "hooks": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "post": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "fired",
+                    "suppressed"
+                  ],
+                  "properties": {
+                    "fired": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "suppressed": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        },
+        "attentionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "startedAt": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "at": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+        }
+      },
+      "description": "One run of a task, its receipt (R15.4): written before the task's checkbox is marked. model and role are absent when none was pinned."
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attempt",
+        "turnId",
+        "turn",
+        "verification",
+        "checks",
+        "startedAt",
+        "durationMs"
+      ],
+      "properties": {
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "turnId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "turn": {
+          "enum": [
+            "completed",
+            "failed",
+            "interrupted"
+          ]
+        },
+        "verification": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "skipped",
+            "stopped",
+            null
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/check"
+          }
+        },
+        "startedAt": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "command",
+        "scope",
+        "status",
+        "exitCode",
+        "durationMs",
+        "output",
+        "sandboxed"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "build",
+            "test",
+            "typecheck",
+            "lint",
+            "reproduction",
+            "review"
+          ]
+        },
+        "command": {
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "full",
+            "linked"
+          ]
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "timeout",
+            "denied",
+            "error",
+            "skipped"
+          ]
+        },
+        "exitCode": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "sandboxed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "bugfixRun": {
+      "description": "One Bug Fix run (reproduce or fix): its attempts, and the reproduction before the fix (on the unfixed code) and after it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "outcome",
+        "sessionId",
+        "model",
+        "attempts",
+        "maxAttempts",
+        "attemptResults",
+        "command",
+        "before",
+        "after",
+        "changedFiles",
+        "reason",
+        "attentionId",
+        "startedAt",
+        "at",
+        "durationMs"
+      ],
+      "properties": {
+        "stage": {
+          "enum": [
+            "reproduce",
+            "fix"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "stopped"
+          ]
+        },
+        "sessionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "urn:mermaide:schema:v1:defs#/$defs/modelId"
+            }
+          ]
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "attemptResults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "attempt",
+              "turnId",
+              "turn",
+              "reproduction",
+              "verification",
+              "checks",
+              "startedAt",
+              "durationMs"
+            ],
+            "properties": {
+              "attempt": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "turnId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "turn": {
+                "enum": [
+                  "completed",
+                  "failed",
+                  "interrupted",
+                  null
+                ]
+              },
+              "reproduction": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/$defs/check"
+                  }
+                ]
+              },
+              "verification": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "blocked",
+                  "skipped",
+                  "stopped",
+                  null
+                ]
+              },
+              "checks": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/check"
+                }
+              },
+              "startedAt": {
+                "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+              },
+              "durationMs": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "command": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        },
+        "before": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/check"
+            }
+          ]
+        },
+        "after": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/check"
+            }
+          ]
+        },
+        "changedFiles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        },
+        "attentionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "startedAt": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+        },
+        "at": {
+          "$ref": "urn:mermaide:schema:v1:defs#/$defs/timestamp"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:mermaide:schema:v1:research",
+  "title": "Research settings",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "search": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "const": "disabled"
+            }
+          },
+          "required": [
+            "provider"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "const": "brave"
+            },
+            "apiKey": {
+              "type": "string",
+              "pattern": "^\\$env:[A-Za-z_][A-Za-z0-9_]{0,127}$"
+            }
+          },
+          "required": [
+            "provider",
+            "apiKey"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "const": "exa"
+            },
+            "apiKey": {
+              "type": "string",
+              "pattern": "^\\$env:[A-Za-z_][A-Za-z0-9_]{0,127}$"
+            }
+          },
+          "required": [
+            "provider",
+            "apiKey"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "const": "searxng"
+            },
+            "endpoint": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 4096,
+              "pattern": "^https?://[^/@\\s]+(?::\\d+)?(?:[/?#]|$)"
+            }
+          },
+          "required": [
+            "provider",
+            "endpoint"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "rendering": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "const": false
+            }
+          },
+          "required": [
+            "enabled"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "executablePath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "pattern": "^(?:/|[A-Za-z]:[\\\\/])"
+            }
+          },
+          "required": [
+            "enabled",
+            "executablePath"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": [
+    "version"
+  ],
+  "additionalProperties": false
+}
